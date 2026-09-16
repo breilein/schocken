@@ -2,268 +2,686 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-  <meta name="theme-color" content="#6278dc">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Schocken – Nessi & Marc</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studjo Terminal</title>
+<link rel="stylesheet" href="style-index.css">
+
 <style>
-:root{--blue:#6278dc;--violet:#704799;--green:#40a94d;--red:#ef4242;--orange:#ff9700}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;min-height:100vh;padding:15px;background:linear-gradient(135deg,#687ce2,#71469a);font-family:Arial,Helvetica,sans-serif;color:#292929}.app{max-width:440px;margin:0 auto}h1{margin:4px 0 8px;text-align:center;color:#fff;font-size:24px}.subtitle{margin:0 5px 16px;text-align:center;color:#fff;font-size:13px;line-height:1.35}.row{display:flex;gap:12px}.card,.middle,.score,.message{background:white;border-radius:15px;box-shadow:0 6px 15px rgba(0,0,0,.20)}.card{width:50%;padding:14px 9px;text-align:center}.name{font-size:18px;font-weight:700}.count{margin:8px 0;color:var(--blue);font-size:42px;font-weight:700}.controls{display:flex;justify-content:center;gap:10px}button{font-family:inherit;cursor:pointer;border:0;font-weight:700;touch-action:manipulation}button:active{transform:scale(.96)}.round{height:50px;width:50px;border-radius:50%;color:white;font-size:29px}.plus{background:var(--green)}.minus{background:var(--red)}button:disabled{opacity:.35;cursor:default}.middle{min-height:185px;margin-top:18px;padding:17px;text-align:center}.middle-title{color:#666;font-size:16px}.middle-count{margin:5px;color:var(--violet);font-size:42px;font-weight:700}.assign{width:92px;height:62px;margin:3px 5px;border:2px solid #896c46;border-radius:50%;background:#d5a878;color:#4e3b28;font-size:13px;line-height:1.15}.message{margin:15px 0;padding:11px;text-align:center;font-size:14px;line-height:1.35}.actions{display:flex;gap:10px}.action{flex:1;padding:14px 8px;border-radius:10px;color:white;font-size:15px;box-shadow:0 4px 10px rgba(0,0,0,.20)}.new{background:var(--orange)}.reset{background:#737373}.score{margin-top:17px;padding:15px;text-align:center}.score h2{margin:0 0 10px;font-size:17px}.scores{display:flex;gap:10px}.scorebox{width:50%;padding:8px;border-radius:10px;background:#f1f1f1;font-weight:700}.scorebox span{display:block;margin-top:3px;color:var(--violet);font-size:31px}.points-reset{margin-top:11px;padding:10px 14px;border-radius:8px;background:#777;color:#fff;font-size:14px}.footer{margin:13px 0 5px;text-align:center;color:#fff;font-size:14px}
+
+/* ══ TICKER ══ */
+.ticker-container {
+  width: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  padding: 8px 0;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+  box-sizing: border-box;
+}
+.ticker-text {
+  display: inline-block;
+  white-space: nowrap;
+  animation: ticker-scroll 40s linear infinite;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #b61f29;
+  padding-left: 100%;
+}
+.ticker-text:hover {
+  animation-play-state: paused;
+}
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+
+/* ══ ZEITKACHEL ══ */
+.zk-widget {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.10);
+  overflow: hidden;
+  width: 100%;
+  margin-bottom: 24px;
+  box-sizing: border-box;
+}
+
+/* Header */
+.zk-header {
+  background: #b61f29;
+  color: #ffffff;
+  padding: 8px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: nowrap;
+  box-sizing: border-box;
+}
+.zk-uhr {
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: .03em;
+  white-space: nowrap;
+}
+.zk-datum {
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: .01em;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Auf schmalen Bildschirmen kleiner */
+@media (max-width: 600px) {
+  .zk-uhr,
+  .zk-datum {
+    font-size: 1.1rem;
+  }
+  .zk-header {
+    padding: 8px 14px;
+  }
+}
+
+/* ── Status-Bereich: 2 Zeilen untereinander (IMMER) ── */
+.zk-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px 12px;
+}
+
+/* ── Status-Karte: kompakte einzeilige Darstellung ── */
+.zk-card {
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;      /* Icon + Text vertikal zentriert */
+  gap: 12px;
+  transition: background .3s, color .3s;
+}
+.zk-card-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.zk-card-label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  opacity: .65;
+  margin-bottom: 1px;
+}
+.zk-card-status {
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1px;
+}
+.zk-card-countdown {
+  font-size: 1.0rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.zk-card-detail {
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: .75;
+  margin-top: 1px;
+  line-height: 1.3;
+}
+
+
+/* Farbvarianten */
+.zk-gruen  { background: #dcfce7; color: #15803d; }
+.zk-orange { background: #fff3e0; color: #b45309; }
+.zk-blau   { background: #dbeafe; color: #1e40af; }
+.zk-grau   { background: #f1f5f9; color: #475569; }
+.zk-lila   { background: #f3e8ff; color: #7e22ce; }
+.zk-rot    { background: #fee2e2; color: #b61f29; }
+
+
+/* ══ NAVIGATIONS-KACHELN ══ */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  margin-top: 8px;
+  margin-bottom: 24px;
+  box-sizing: border-box;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  border-radius: 18px;
+  padding: 22px 14px 18px;
+  text-decoration: none;
+  color: #1a1a1a;
+  font-weight: 700;
+  text-align: center;
+  transition: transform .2s, box-shadow .2s;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  min-height: 210px;
+  box-sizing: border-box;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.card-img {
+  width: 100%;
+  max-width: 140px;
+  height: 130px;
+  object-fit: contain;
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+.card h2 {
+  font-size: 1.05rem;
+  line-height: 1.3;
+  margin: 0;
+}
+
+/* Farben */
+.card-color-1  { background: #fce4ec; }
+.card-color-2  { background: #e8f5e9; }
+.card-color-3  { background: #fff9c4; }
+.card-color-4  { background: #fbe9e7; }
+.card-color-5  { background: #f3e5f5; }
+.card-color-6  { background: #e0f2f1; }
+.card-color-7  { background: #e3f2fd; }
+.card-color-8  { background: #ede7f6; }
+.card-color-9  { background: #fff3e0; }
+.card-color-10 { background: #e1f5fe; }
+.card-color-11 { background: #f9fbe7; }
+.card-color-12 { background: #efebe9; }
+.card-color-13 { background: #fce4ec; }
+.card-color-14 { background: #e0f7fa; }
+.card-color-15 { background: #f1f8e9; }
+.card-color-16 { background: #fff8e1; }
+  
+}
+
 </style>
 </head>
 <body>
-<main class="app">
-<h1>Schocken</h1><div style="text-align:center;color:#fff;font-size:12px;margin:-3px 0 8px;opacity:.95">13 Deckel · Nessi gegen Marc</div>
-<p id="phase" class="subtitle">Phase 1: Deckel werden aus der Mitte verteilt.</p>
-<section class="row">
-<div class="card"><div class="name">Nessi</div><div id="nCount" class="count">0</div><div class="controls"><button id="nMinus" class="round minus" type="button" aria-label="Nessi gibt einen Deckel ab">−</button><button id="nPlus" class="round plus" type="button" aria-label="Deckel zu Nessi">+</button></div></div>
-<div class="card"><div class="name">Marc</div><div id="mCount" class="count">0</div><div class="controls"><button id="mMinus" class="round minus" type="button" aria-label="Marc gibt einen Deckel ab">−</button><button id="mPlus" class="round plus" type="button" aria-label="Deckel zu Marc">+</button></div></div>
-</section>
-<section class="middle"><div class="middle-title">Mitte</div><div id="cCount" class="middle-count">13</div><button id="toNessi" class="assign" type="button">Deckel zu<br>Nessi</button><button id="toMarc" class="assign" type="button">Deckel zu<br>Marc</button></section>
-<div id="message" class="message">Tippe für jeden fälligen Deckel auf Nessi oder Marc.</div>
-<section class="actions"><button id="newRound" class="action new" type="button">Neue Runde</button><button id="allMiddle" class="action reset" type="button">Alles in die Mitte</button></section>
-<section class="score"><h2>Gewonnene Hälften</h2><div class="scores"><div class="scorebox">Nessi<span id="nWins">0</span></div><div class="scorebox">Marc<span id="mWins">0</span></div></div><button id="resetPoints" class="points-reset" type="button">Punkte zurücksetzen</button></section>
-<div class="footer">Insgesamt: 13 Deckel</div>
-</main>
+
+<header>
+  <div style="position: fixed; top: 0; right: 0; width: 200px; height: 200px;
+              overflow: hidden; z-index: 9999; pointer-events: none;">
+    <div style="position: absolute; top: 55px; right: -65px; width: 260px;
+                background-color: #B61F29; color: #FFFFFF; font-size: 12px;
+                font-weight: 700; letter-spacing: 0.05em; padding: 8px 0;
+                text-align: center; transform: rotate(45deg);">TESTUMGEBUNG</div>
+  </div>
+  <div class="logo-container">
+    <img src="header.jpg" alt="Studjo Logo">
+  </div>
+</header>
+
+<main id="scrollable-content">
+
+  <div style="position:relative;">
+    <h1>Willkommen am Studjo | Terminal</h1>
+    <button type="button"
+            onclick="document.getElementById('info-popup').style.display='flex'"
+            aria-label="Kurze Info anzeigen"
+            style="position:absolute; right:20px; top:50%; transform:translateY(-50%);
+                   flex-shrink:0; background:#ffffff; border:3px solid #b61f29;
+                   border-radius:50%; width:52px; height:52px; cursor:pointer;
+                   display:flex; align-items:center; justify-content:center;
+                   font-size:1.9rem; padding:0; line-height:1;">
+        ℹ️
+    </button>
+  </div>
+
+<!-- ══ INFO-POPUP ══ -->
+<div id="info-popup"
+     onclick="this.style.display='none'"
+     style="display:none; position:fixed; inset:0; z-index:2000;
+            background:rgba(0,0,0,0.6); align-items:center; justify-content:center; padding:20px;">
+  <div onclick="event.stopPropagation()"
+       style="background:#fff; border-radius:16px; padding:30px 30px 26px;
+              text-align:left; max-width:580px; width:100%; position:relative;
+              box-shadow:0 10px 40px rgba(0,0,0,0.35);">
+    <button type="button"
+            onclick="vorleseInfoText(this)"
+            aria-label="Info vorlesen"
+            style="position:absolute; top:10px; right:52px; background:#f1f1f1; border:none;
+                   border-radius:50%; width:32px; height:32px; font-size:1.05rem; cursor:pointer;
+                   line-height:1; display:flex; align-items:center; justify-content:center;">
+      👂
+    </button>
+    <button type="button"
+            onclick="document.getElementById('info-popup').style.display='none'"
+            aria-label="Schließen"
+            style="position:absolute; top:10px; right:10px; background:#f1f1f1; border:none;
+                   border-radius:50%; width:32px; height:32px; font-size:1.1rem; cursor:pointer;
+                   line-height:1;">✕</button>
+
+    <h2 style="margin:0 0 16px; color:#b61f29; font-size:1.3rem; font-weight:800;">
+      Kurze Info
+    </h2>
+
+    <ul style="margin:0; padding-left:22px; font-size:1rem; line-height:1.8; color:#0f2f37;">
+      <li>Diese Seiten sind für Mitarbeitende mit Werkstattvertrag.</li>
+      <li>Sie informieren dich über Angebote und Regeln bei Studjo.</li>
+      <li>Seiten mit "intern" öffnen sich nur bei Studjo.</li>
+      <li>Das "H" unten rechts bietet dir ein Vorlesen an.</li>
+      <li>Und nun viel Freude beim Informieren ;-)</li>
+    </ul>
+  </div>
+</div>
+
 <script>
-(function () {
-  'use strict';
-
-  var TOTAL = 13;
-  var KEY = 'schocken-index-v1';
-
-  var state = {
-    phase: 1,                 // 1 = first half, 2 = second half, 3 = final
-    nessi: 0,
-    marc: 0,
-    center: TOTAL,
-    firstLoser: null,
-    secondLoser: null,
-    nessiWins: 0,
-    marcWins: 0
-  };
-
-  function $(id) {
-    return document.getElementById(id);
-  }
-
-  function num(value, fallback) {
-    var n = Number(value);
-    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : fallback;
-  }
-
-  function normalize() {
-    state.phase = num(state.phase, 1);
-    if (state.phase < 1 || state.phase > 3) state.phase = 1;
-
-    state.nessi = num(state.nessi, 0);
-    state.marc = num(state.marc, 0);
-    state.center = num(state.center, TOTAL);
-    state.nessiWins = num(state.nessiWins, 0);
-    state.marcWins = num(state.marcWins, 0);
-
-    if (state.nessi + state.marc + state.center !== TOTAL) {
-      state.nessi = 0;
-      state.marc = 0;
-      state.center = TOTAL;
-    }
-  }
-
-  function save() {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(state));
-    } catch (e) {
-      // GitHub Pages/Chrome can still run the app if storage is unavailable.
-    }
-  }
-
-  function load() {
-    try {
-      var raw = localStorage.getItem(KEY);
-      if (raw) {
-        var saved = JSON.parse(raw);
-        if (saved && typeof saved === 'object') {
-          Object.keys(state).forEach(function (key) {
-            if (Object.prototype.hasOwnProperty.call(saved, key)) {
-              state[key] = saved[key];
-            }
-          });
-        }
+  function vorleseInfoText(button) {
+      if (!('speechSynthesis' in window)) {
+          alert('Dein Browser unterstützt leider keine Sprachausgabe.');
+          return;
       }
-    } catch (e) {}
-    normalize();
+      const warAktiv = button.classList.contains('aktiv');
+      window.speechSynthesis.cancel();
+      document.querySelectorAll('.info-ohr-aktiv').forEach(b => {
+          b.classList.remove('info-ohr-aktiv', 'aktiv');
+          b.style.background = '#f1f1f1';
+      });
+      if (warAktiv) return;
+
+      const popup = document.getElementById('info-popup');
+      const ueberschrift = popup.querySelector('h2')?.innerText || '';
+      const listenpunkte = Array.from(popup.querySelectorAll('li')).map(li => li.innerText);
+      const roh = [ueberschrift, ...listenpunkte].join('. ');
+      const text = roh.replace(/\p{Extended_Pictographic}/gu, '').replace(/\s+/g, ' ').trim();
+
+      const ansage = new SpeechSynthesisUtterance(text);
+      ansage.lang = 'de-DE';
+      ansage.rate = 0.95;
+      const zuruecksetzen = () => {
+          button.classList.remove('aktiv', 'info-ohr-aktiv');
+          button.style.background = '#f1f1f1';
+      };
+      ansage.onend = zuruecksetzen;
+      ansage.onerror = zuruecksetzen;
+
+      button.classList.add('aktiv', 'info-ohr-aktiv');
+      button.style.background = '#ffe600';
+      window.speechSynthesis.speak(ansage);
   }
-
-  function playerName(player) {
-    return player === 'nessi' ? 'Nessi' : 'Marc';
-  }
-
-  function resetDeckels() {
-    state.nessi = 0;
-    state.marc = 0;
-    state.center = TOTAL;
-  }
-
-  function render() {
-    $('nCount').textContent = state.nessi;
-    $('mCount').textContent = state.marc;
-    $('cCount').textContent = state.center;
-    $('nWins').textContent = state.nessiWins;
-    $('mWins').textContent = state.marcWins;
-
-    var phase1 = state.center > 0;
-
-    $('toNessi').disabled = !phase1;
-    $('toMarc').disabled = !phase1;
-    $('nPlus').disabled = !phase1;
-    $('mPlus').disabled = !phase1;
-
-    $('nMinus').disabled = phase1 || state.nessi === 0;
-    $('mMinus').disabled = phase1 || state.marc === 0;
-
-    if (state.phase === 1) {
-      $('phase').textContent = phase1
-        ? '1. Hälfte · Deckel werden aus der Mitte verteilt.'
-        : '1. Hälfte · Die Mitte ist leer: Deckel wandern zwischen Nessi und Marc.';
-    } else if (state.phase === 2) {
-      $('phase').textContent = phase1
-        ? '2. Hälfte · Deckel werden aus der Mitte verteilt.'
-        : '2. Hälfte · Die Mitte ist leer: Deckel wandern zwischen Nessi und Marc.';
-    } else {
-      $('phase').textContent = phase1
-        ? 'Finale · Nessi gegen Marc.'
-        : 'Finale · Die Deckel wandern zwischen den Finalisten.';
-    }
-
-    $('message').textContent = phase1
-      ? 'Nach dem echten Würfeln: Für jeden fälligen Deckel auf den Empfänger tippen.'
-      : 'Der Gewinner der Runde gibt Deckel ab – der Verlierer erhält sie.';
-  }
-
-  function giveFromCenter(player) {
-    if (state.center <= 0) return;
-
-    state.center -= 1;
-    state[player] += 1;
-    save();
-    render();
-    checkAll13(player);
-  }
-
-  function transfer(player) {
-    if (state.center !== 0 || state[player] <= 0) return;
-
-    var other = player === 'nessi' ? 'marc' : 'nessi';
-    state[player] -= 1;
-    state[other] += 1;
-
-    save();
-    render();
-    checkAll13(other);
-  }
-
-  function checkAll13(player) {
-    if (state[player] !== TOTAL) return;
-
-    var loser = player;
-    var loserName = playerName(loser);
-
-    if (state.phase === 1) {
-      state.firstLoser = loser;
-      state.nessiWins += loser === 'marc' ? 1 : 0;
-      state.marcWins += loser === 'nessi' ? 1 : 0;
-      save();
-
-      window.setTimeout(function () {
-        window.alert(
-          loserName + ' hat alle 13 Deckel und verliert die 1. Hälfte.\n' +
-          'Jetzt beginnt die 2. Hälfte.'
-        );
-        state.phase = 2;
-        resetDeckel();
-        save();
-        render();
-      }, 80);
-
-    } else if (state.phase === 2) {
-      state.secondLoser = loser;
-      state.nessiWins += loser === 'marc' ? 1 : 0;
-      state.marcWins += loser === 'nessi' ? 1 : 0;
-      save();
-
-      window.setTimeout(function () {
-        if (state.firstLoser === state.secondLoser) {
-          window.alert(
-            loserName +
-            ' hat beide Hälften verloren. Das Spiel ist beendet.'
-          );
-          state.phase = 1;
-          resetDeckel();
-        } else {
-          var a = playerName(state.firstLoser);
-          var b = playerName(state.secondLoser);
-          window.alert(
-            'Die Hälften sind verteilt.\n\n' +
-            a + ' und ' + b + ' spielen jetzt das Finale.'
-          );
-          state.phase = 3;
-          resetDeckel();
-        }
-        save();
-        render();
-      }, 80);
-
-    } else {
-      window.setTimeout(function () {
-        window.alert(
-          loserName + ' hat das Finale verloren.\n' +
-          'Das Spiel ist beendet.'
-        );
-        state.phase = 1;
-        state.firstLoser = null;
-        state.secondLoser = null;
-        resetDeckel();
-        save();
-        render();
-      }, 80);
-    }
-  }
-
-  function newGame() {
-    state.phase = 1;
-    state.firstLoser = null;
-    state.secondLoser = null;
-    resetDeckel();
-    save();
-    render();
-  }
-
-  function resetPoints() {
-    state.nessiWins = 0;
-    state.marcWins = 0;
-    save();
-    render();
-  }
-
-  // Optional keyboard support; touch/mouse continues to use ordinary click.
-  function bind(id, fn) {
-    var el = $(id);
-    if (el) el.addEventListener('click', fn, false);
-  }
-
-  bind('toNessi', function () { giveFromCenter('nessi'); });
-  bind('toMarc', function () { giveFromCenter('marc'); });
-  bind('nPlus', function () { giveFromCenter('nessi'); });
-  bind('mPlus', function () { giveFromCenter('marc'); });
-  bind('nMinus', function () { transfer('nessi'); });
-  bind('mMinus', function () { transfer('marc'); });
-  bind('newRound', newGame);
-  bind('allMiddle', newGame);
-  bind('resetPoints', resetPoints);
-
-  load();
-  render();
-})();
 </script>
-</body></html>
+
+  <!-- ══ TICKER ══ -->
+  <div class="ticker-container">
+    <div class="ticker-text">
++++ Neue Übersicht in Fußzeile erklärt Inhalte und Bedienung +++ Motto der Woche mit Erklärung +++ Siehe täglich die Tages-Losung +++      
+                          </div>
+  </div>
+
+
+  <!-- ══ ZEITKACHEL ══ -->
+  <div class="zk-widget" role="region" aria-label="Tageszeit und Arbeitszeit">
+
+    <div class="zk-header">
+      <div id="zk-uhr"   class="zk-uhr">…</div>
+      <div id="zk-datum" class="zk-datum">…</div>
+    </div>
+
+    <div class="zk-body">
+
+      <div class="zk-body">
+
+  <!-- Zeile 1: JETZT -->
+  <div class="zk-card" id="zk-arbeit" aria-live="polite">
+    <div class="zk-card-icon" id="zk-a-icon">⏳</div>
+    <div>
+      <div class="zk-card-label">Jetzt …</div>
+      <div class="zk-card-status"    id="zk-a-status">…</div>
+      <div class="zk-card-countdown" id="zk-a-countdown"></div>
+      <div class="zk-card-detail"    id="zk-a-detail">…</div>
+    </div>
+  </div>
+
+  <!-- Zeile 2: BALD -->
+  <div class="zk-card" id="zk-pause" aria-live="polite">
+    <div class="zk-card-icon" id="zk-p-icon">☕</div>
+    <div>
+      <div class="zk-card-label">Bald …</div>
+      <div class="zk-card-status"    id="zk-p-status">…</div>
+      <div class="zk-card-countdown" id="zk-p-countdown"></div>
+      <div class="zk-card-detail"    id="zk-p-detail">…</div>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+
+    const CFG = {
+      WORK_START:  8 * 60,
+      WORK_END_N:  15 * 60 + 15,
+      WORK_END_K:  14 * 60 + 45,
+      BREAK1_S:    10 * 60,
+      BREAK1_E:    10 * 60 + 20,
+      BREAK2_S:    12 * 60,
+      BREAK2_E:    13 * 60,
+    };
+
+    const WOCHENTAGE = ['Sonntag','Montag','Dienstag','Mittwoch',
+                        'Donnerstag','Freitag','Samstag'];
+    const MONATE     = ['Januar','Februar','März','April','Mai','Juni',
+                        'Juli','August','September','Oktober','November','Dezember'];
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function minText(m) {
+      if (m <= 0) return '0 Min.';
+      const h = Math.floor(m / 60), r = m % 60;
+      if (h === 0) return r + ' Min.';
+      if (r === 0) return h + ' Std.';
+      return h + ' Std. ' + r + ' Min.';
+    }
+
+    function minutenBisNaechsteMo8(jetzt) {
+      const tag    = jetzt.getDay();
+      const daysTo = tag === 0 ? 1 : tag === 6 ? 2 : 1;
+      const z      = new Date(jetzt);
+      z.setDate(jetzt.getDate() + daysTo);
+      z.setHours(8, 0, 0, 0);
+      return Math.max(0, Math.floor((z - jetzt) / 60000));
+    }
+
+    function minutenBisNaechsteArbeit(jetzt, tag) {
+      const daysTo = tag === 5 ? 3 : 1;
+      const z      = new Date(jetzt);
+      z.setDate(jetzt.getDate() + daysTo);
+      z.setHours(8, 0, 0, 0);
+      return Math.max(0, Math.floor((z - jetzt) / 60000));
+    }
+
+    function ersterDienstagDerMonats(d) {
+      return d.getDay() === 2 && d.getDate() <= 7;
+    }
+
+    function setArbeit(css, icon, status, countdown, detail) {
+      document.getElementById('zk-arbeit').className        = 'zk-card ' + css;
+      document.getElementById('zk-a-icon').textContent      = icon;
+      document.getElementById('zk-a-status').textContent    = status;
+      document.getElementById('zk-a-countdown').textContent = countdown;
+      document.getElementById('zk-a-detail').textContent    = detail;
+    }
+
+    function setPause(css, icon, status, countdown, detail) {
+      document.getElementById('zk-pause').className         = 'zk-card ' + css;
+      document.getElementById('zk-p-icon').textContent      = icon;
+      document.getElementById('zk-p-status').textContent    = status;
+      document.getElementById('zk-p-countdown').textContent = countdown;
+      document.getElementById('zk-p-detail').textContent    = detail;
+    }
+
+    function update() {
+      const jetzt = new Date();
+      const tag   = jetzt.getDay();
+      const std   = jetzt.getHours();
+      const min   = jetzt.getMinutes();
+      const tm    = std * 60 + min;
+
+      document.getElementById('zk-uhr').textContent =
+        pad(std) + ':' + pad(min);
+      document.getElementById('zk-datum').textContent =
+        WOCHENTAGE[tag] + ', ' + jetzt.getDate() + '. ' +
+        MONATE[jetzt.getMonth()] + ' ' + jetzt.getFullYear();
+
+      const kurzTag  = tag === 5 || ersterDienstagDerMonats(jetzt);
+      const WORK_END = kurzTag ? CFG.WORK_END_K : CFG.WORK_END_N;
+      const feierStr = kurzTag ? '14:45' : '15:15';
+      const istArbeitstag = tag >= 1 && tag <= 5;
+
+      /* WOCHENENDE */
+      if (!istArbeitstag) {
+        const min2 = minutenBisNaechsteMo8(jetzt);
+        setArbeit('zk-grau','🏠','Wochenende','noch ' + minText(min2),
+          'Montag 8:00 Uhr → Arbeitsbeginn');
+        setPause('zk-grau','🌙','Ruhetag','–','Keine Arbeitszeiten heute');
+        return;
+      }
+
+      /* VOR DER ARBEIT */
+      if (tm < CFG.WORK_START) {
+        const min2 = CFG.WORK_START - tm;
+        setArbeit('zk-blau','🌅','Vor der Arbeit','noch ' + minText(min2),
+          'Arbeit beginnt um 8:00 Uhr');
+        setPause('zk-grau','☕','Noch keine Pause','–',
+          'Erste Pause um 10:00 Uhr');
+        return;
+      }
+
+      /* FREIZEIT */
+      if (tm >= WORK_END) {
+        const min2      = minutenBisNaechsteArbeit(jetzt, tag);
+        const naechster = tag === 5 ? 'Montag' : 'Morgen';
+        setArbeit('zk-rot','🏠','Freizeit',
+          'seit ' + feierStr + ' Uhr','Guten Feierabend! 🎉');
+        setPause('zk-gruen','🌅','Nächste Arbeitszeit',
+          'in ' + minText(min2), naechster + ' um 8:00 Uhr');
+        return;
+      }
+
+      /* PAUSE 1 */
+      if (tm >= CFG.BREAK1_S && tm < CFG.BREAK1_E) {
+        const min2 = CFG.BREAK1_E - tm;
+        setArbeit('zk-orange','☕','Pause läuft',
+          'noch ' + minText(min2),'Ende um 10:20 Uhr');
+        setPause('zk-gruen','✅','Arbeitszeit',
+          'ab 10:20 Uhr','Weiterarbeit in ' + minText(min2));
+        return;
+      }
+
+      /* MITTAGSPAUSE */
+      if (tm >= CFG.BREAK2_S && tm < CFG.BREAK2_E) {
+        const min2 = CFG.BREAK2_E - tm;
+        setArbeit('zk-orange','🍽️','Pause läuft',
+          'noch ' + minText(min2),'Ende um 13:00 Uhr');
+        setPause('zk-gruen','✅','Arbeitszeit',
+          'ab 13:00 Uhr','Weiterarbeit in ' + minText(min2));
+        return;
+      }
+
+      /* NORMALE ARBEITSZEIT */
+      const minBisFeier = WORK_END - tm;
+
+      if (tm < CFG.BREAK1_S) {
+        const min2 = CFG.BREAK1_S - tm;
+        setArbeit('zk-gruen','✅','Arbeitszeit',
+          'noch ' + minText(minBisFeier),'Feierabend um ' + feierStr + ' Uhr');
+        setPause('zk-orange','☕','Nächste Pause um 10:00',
+          'in ' + minText(min2),'Dauer: 20 Min. (bis 10:20 Uhr)');
+        return;
+      }
+
+      if (tm < CFG.BREAK2_S) {
+        const min2 = CFG.BREAK2_S - tm;
+        setArbeit('zk-gruen','✅','Arbeitszeit',
+          'noch ' + minText(minBisFeier),'Feierabend um ' + feierStr + ' Uhr');
+        setPause('zk-orange','🍽️','Mittagspause um 12:00',
+          'in ' + minText(min2),'Dauer: 1 Std. (bis 13:00 Uhr)');
+        return;
+      }
+
+      /* LETZTE ARBEITSPHASE */
+      setArbeit('zk-gruen','✅','Arbeitszeit',
+        'noch ' + minText(minBisFeier),'Feierabend um ' + feierStr + ' Uhr');
+      setPause('zk-rot','🏠','Freizeit',
+        'in ' + minText(minBisFeier),'ab ' + feierStr + ' Uhr');
+    }
+
+    update();
+    setInterval(update, 1000);
+
+  })();
+  </script>
+
+
+  <!-- ══ NAVIGATIONS-KACHELN ══ -->
+  <div class="card-grid">
+
+    <a href="nachrichten.html" class="card card-color-9">
+      <img src="Neues.jpg" alt="" class="card-img">
+      <h2>Neuigkeiten bei Studjo</h2>
+    </a>
+
+    <a href="termine.html" class="card card-color-10">
+      <img src="termine.jpg" alt="" class="card-img">
+      <h2>Termine</h2>
+    </a>
+
+    <a href="speiseplan.html" class="card card-color-3">
+      <img src="Essen.jpg" alt="" class="card-img">
+      <h2>Speiseplan</h2>
+    </a>
+
+    <a href="aba.html" class="card card-color-16">
+      <img src="Aba.jpg" alt="" class="card-img">
+      <h2>Arbeitsbegleitende Angebote</h2>
+    </a>
+
+    <a href="werkstattordnung.html" class="card card-color-1">
+      <img src="Regeln.jpg" alt="" class="card-img">
+      <h2>Werkstattordnung und Regeln</h2>
+    </a>
+
+    <a href="verhaltenbeikonflikten.html" class="card card-color-4">
+      <img src="Gewalt.jpg" alt="" class="card-img">
+      <h2>Gewaltschutz</h2>
+    </a>
+
+    <a href="arbeitssicherheit.html" class="card card-color-10">
+      <img src="Arbeitssicherheit.jpg" alt="" class="card-img">
+      <h2>Arbeitssicherheit</h2>
+    </a>
+
+    <a href="wrfb.html" class="card card-color-6">
+      <img src="Werkstattrat.jpg" alt="" class="card-img">
+      <h2>Werkstattrat und Frauenbeauftragte</h2>
+    </a>
+
+    <a href="infofilme.html" class="card card-color-7">
+      <img src="Filme.jpg" alt="" class="card-img">
+      <h2>Info-Filme</h2>
+    </a>
+
+    <a href="nachrichten-allgemein.html" class="card card-color-2">
+      <img src="news.jpg" alt="" class="card-img">
+      <h2>Allgemeine Nachrichten</h2>
+    </a>
+
+    <a href="wetter.html" class="card card-color-9">
+      <img src="wetter.jpg" alt="" class="card-img">
+      <h2>Wetter</h2>
+    </a>
+
+    <a href="opnv.html" class="card card-color-8">
+      <img src="OPNV.jpg" alt="" class="card-img">
+      <h2>Adressen und Fahrpläne</h2>
+    </a>
+
+    <a href="losung.html" class="card card-color-14">
+      <img src="losung.jpg" alt="" class="card-img">
+      <h2>Losung für heute</h2>
+    </a>
+
+    <a href="wochenmotto.html" class="card card-color-11">
+  <img src="wochenmotto.jpg" alt="" class="card-img">
+  <h2>Wochenmotto</h2>
+</a>
+
+    <a href="faq.html" class="card card-color-3">
+      <img src="faq.jpg" alt="" class="card-img">
+      <h2>Häufige Fragen</h2>
+    </a>
+
+  </div><!-- Ende .card-grid -->
+
+</main>
+
+<!-- ══ FOOTER ══ -->
+<footer style="
+  position: relative;
+  text-align: center;
+  padding: 10px 60px 10px 16px;
+  background: #b61f29;
+  color: #ffffff;
+  font-size: 0.85rem;
+  line-height: 1.6;
+">
+  © 2026 <strong>Studjo | Arbeit und Qualifizierung</strong>
+   ·  Evangelisches Johanneswerk gGmbH
+  <br>
+  <a href="index.html"
+     style="color:rgba(255,255,255,.85);text-decoration:none;margin:0 6px">
+    Startseite
+  </a>
+   | 
+  <a href="uebersicht.html"
+     style="color:rgba(255,255,255,.85);text-decoration:none;margin:0 6px">
+    Übersicht
+  </a>
+   | 
+  <a href="impressum.html"
+     style="color:rgba(255,255,255,.85);text-decoration:none;margin:0 6px">
+    Impressum
+  </a>
+   | 
+  <a href="datenschutz.html"
+     style="color:rgba(255,255,255,.85);text-decoration:none;margin:0 6px">
+    Datenschutz
+  </a>
+
+  <button type="button"
+          onclick="document.getElementById('qr-overlay').style.display='flex'"
+          aria-label="QR-Code zum Scannen anzeigen"
+          style="position:absolute; right:14px; top:50%; transform:translateY(-50%);
+                 background:rgba(255,255,255,0.18); border:2px solid rgba(255,255,255,0.55);
+                 border-radius:8px; width:38px; height:38px; cursor:pointer;
+                 display:flex; align-items:center; justify-content:center;
+                 font-size:1.25rem; padding:0; color:#fff; line-height:1;">
+    📱
+  </button>
+</footer>
+
+<!-- ══ QR-CODE-OVERLAY (per Klick auf das Handy-Symbol im Footer) ══ -->
+<div id="qr-overlay"
+     onclick="this.style.display='none'"
+     style="display:none; position:fixed; inset:0; z-index:2000;
+            background:rgba(0,0,0,0.6); align-items:center; justify-content:center; padding:20px;">
+  <div onclick="event.stopPropagation()"
+       style="background:#fff; border-radius:16px; padding:30px 30px 24px;
+              text-align:center; max-width:320px; position:relative;
+              box-shadow:0 10px 40px rgba(0,0,0,0.35);">
+    <button type="button"
+            onclick="document.getElementById('qr-overlay').style.display='none'"
+            aria-label="Schließen"
+            style="position:absolute; top:10px; right:10px; background:#f1f1f1; border:none;
+                   border-radius:50%; width:32px; height:32px; font-size:1.1rem; cursor:pointer;
+                   line-height:1;">✕</button>
+    <img src="qr-terminal.jpg" alt="QR-Code zur Studjo-Terminal-Seite"
+         style="width:220px;height:220px;display:block;margin:0 auto 16px;">
+    <p style="font-size:1rem; color:#0f2f37; margin:0 0 6px; font-weight:700;">
+      Mit dem Handy scannen
+    </p>
+    <p style="font-size:0.85rem; color:#8a8d8f; margin:0; word-break:break-all;">
+      studjo-auq.github.io/terminal
+    </p>
+  </div>
+</div>
+<link rel="stylesheet" href="a11y.css">
+ <script src="a11y.js"></script>
+</body>
+</html>
