@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#6278dc">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Schocken – Nessi & Marc</title>
+<style>
+:root{--blue:#6278dc;--violet:#704799;--green:#40a94d;--red:#ef4242;--orange:#ff9700}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;min-height:100vh;padding:15px;background:linear-gradient(135deg,#687ce2,#71469a);font-family:Arial,Helvetica,sans-serif;color:#292929}.app{max-width:440px;margin:0 auto}h1{margin:4px 0 8px;text-align:center;color:#fff;font-size:24px}.subtitle{margin:0 5px 16px;text-align:center;color:#fff;font-size:13px;line-height:1.35}.row{display:flex;gap:12px}.card,.middle,.score,.message{background:white;border-radius:15px;box-shadow:0 6px 15px rgba(0,0,0,.20)}.card{width:50%;padding:14px 9px;text-align:center}.name{font-size:18px;font-weight:700}.count{margin:8px 0;color:var(--blue);font-size:42px;font-weight:700}.controls{display:flex;justify-content:center;gap:10px}button{font-family:inherit;cursor:pointer;border:0;font-weight:700;touch-action:manipulation}button:active{transform:scale(.96)}.round{height:50px;width:50px;border-radius:50%;color:white;font-size:29px}.plus{background:var(--green)}.minus{background:var(--red)}button:disabled{opacity:.35;cursor:default}.middle{min-height:185px;margin-top:18px;padding:17px;text-align:center}.middle-title{color:#666;font-size:16px}.middle-count{margin:5px;color:var(--violet);font-size:42px;font-weight:700}.assign{width:92px;height:62px;margin:3px 5px;border:2px solid #896c46;border-radius:50%;background:#d5a878;color:#4e3b28;font-size:13px;line-height:1.15}.message{margin:15px 0;padding:11px;text-align:center;font-size:14px;line-height:1.35}.actions{display:flex;gap:10px}.action{flex:1;padding:14px 8px;border-radius:10px;color:white;font-size:15px;box-shadow:0 4px 10px rgba(0,0,0,.20)}.new{background:var(--orange)}.reset{background:#737373}.score{margin-top:17px;padding:15px;text-align:center}.score h2{margin:0 0 10px;font-size:17px}.scores{display:flex;gap:10px}.scorebox{width:50%;padding:8px;border-radius:10px;background:#f1f1f1;font-weight:700}.scorebox span{display:block;margin-top:3px;color:var(--violet);font-size:31px}.points-reset{margin-top:11px;padding:10px 14px;border-radius:8px;background:#777;color:#fff;font-size:14px}.footer{margin:13px 0 5px;text-align:center;color:#fff;font-size:14px}
+</style>
+</head>
+<body>
+<main class="app">
+<h1>Schocken</h1><div style="text-align:center;color:#fff;font-size:12px;margin:-3px 0 8px;opacity:.95">13 Deckel · Nessi gegen Marc</div>
+<p id="phase" class="subtitle">Phase 1: Deckel werden aus der Mitte verteilt.</p>
+<section class="row">
+<div class="card"><div class="name">Nessi</div><div id="nCount" class="count">0</div><div class="controls"><button id="nMinus" class="round minus" type="button" aria-label="Nessi gibt einen Deckel ab">−</button><button id="nPlus" class="round plus" type="button" aria-label="Deckel zu Nessi">+</button></div></div>
+<div class="card"><div class="name">Marc</div><div id="mCount" class="count">0</div><div class="controls"><button id="mMinus" class="round minus" type="button" aria-label="Marc gibt einen Deckel ab">−</button><button id="mPlus" class="round plus" type="button" aria-label="Deckel zu Marc">+</button></div></div>
+</section>
+<section class="middle"><div class="middle-title">Mitte</div><div id="cCount" class="middle-count">13</div><button id="toNessi" class="assign" type="button">Deckel zu<br>Nessi</button><button id="toMarc" class="assign" type="button">Deckel zu<br>Marc</button></section>
+<div id="message" class="message">Tippe für jeden fälligen Deckel auf Nessi oder Marc.</div>
+<section class="actions"><button id="newRound" class="action new" type="button">Neue Runde</button><button id="allMiddle" class="action reset" type="button">Alles in die Mitte</button></section>
+<section class="score"><h2>Gewonnene Hälften</h2><div class="scores"><div class="scorebox">Nessi<span id="nWins">0</span></div><div class="scorebox">Marc<span id="mWins">0</span></div></div><button id="resetPoints" class="points-reset" type="button">Punkte zurücksetzen</button></section>
+<div class="footer">Insgesamt: 13 Deckel</div>
+</main>
+<script>
+(function () {
+  'use strict';
+
+  var TOTAL = 13;
+  var KEY = 'schocken-index-v1';
+
+  var state = {
+    phase: 1,                 // 1 = first half, 2 = second half, 3 = final
+    nessi: 0,
+    marc: 0,
+    center: TOTAL,
+    firstLoser: null,
+    secondLoser: null,
+    nessiWins: 0,
+    marcWins: 0
+  };
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function num(value, fallback) {
+    var n = Number(value);
+    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : fallback;
+  }
+
+  function normalize() {
+    state.phase = num(state.phase, 1);
+    if (state.phase < 1 || state.phase > 3) state.phase = 1;
+
+    state.nessi = num(state.nessi, 0);
+    state.marc = num(state.marc, 0);
+    state.center = num(state.center, TOTAL);
+    state.nessiWins = num(state.nessiWins, 0);
+    state.marcWins = num(state.marcWins, 0);
+
+    if (state.nessi + state.marc + state.center !== TOTAL) {
+      state.nessi = 0;
+      state.marc = 0;
+      state.center = TOTAL;
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch (e) {
+      // GitHub Pages/Chrome can still run the app if storage is unavailable.
+    }
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var saved = JSON.parse(raw);
+        if (saved && typeof saved === 'object') {
+          Object.keys(state).forEach(function (key) {
+            if (Object.prototype.hasOwnProperty.call(saved, key)) {
+              state[key] = saved[key];
+            }
+          });
+        }
+      }
+    } catch (e) {}
+    normalize();
+  }
+
+  function playerName(player) {
+    return player === 'nessi' ? 'Nessi' : 'Marc';
+  }
+
+  function resetDeckels() {
+    state.nessi = 0;
+    state.marc = 0;
+    state.center = TOTAL;
+  }
+
+  function render() {
+    $('nCount').textContent = state.nessi;
+    $('mCount').textContent = state.marc;
+    $('cCount').textContent = state.center;
+    $('nWins').textContent = state.nessiWins;
+    $('mWins').textContent = state.marcWins;
+
+    var phase1 = state.center > 0;
+
+    $('toNessi').disabled = !phase1;
+    $('toMarc').disabled = !phase1;
+    $('nPlus').disabled = !phase1;
+    $('mPlus').disabled = !phase1;
+
+    $('nMinus').disabled = phase1 || state.nessi === 0;
+    $('mMinus').disabled = phase1 || state.marc === 0;
+
+    if (state.phase === 1) {
+      $('phase').textContent = phase1
+        ? '1. Hälfte · Deckel werden aus der Mitte verteilt.'
+        : '1. Hälfte · Die Mitte ist leer: Deckel wandern zwischen Nessi und Marc.';
+    } else if (state.phase === 2) {
+      $('phase').textContent = phase1
+        ? '2. Hälfte · Deckel werden aus der Mitte verteilt.'
+        : '2. Hälfte · Die Mitte ist leer: Deckel wandern zwischen Nessi und Marc.';
+    } else {
+      $('phase').textContent = phase1
+        ? 'Finale · Nessi gegen Marc.'
+        : 'Finale · Die Deckel wandern zwischen den Finalisten.';
+    }
+
+    $('message').textContent = phase1
+      ? 'Nach dem echten Würfeln: Für jeden fälligen Deckel auf den Empfänger tippen.'
+      : 'Der Gewinner der Runde gibt Deckel ab – der Verlierer erhält sie.';
+  }
+
+  function giveFromCenter(player) {
+    if (state.center <= 0) return;
+
+    state.center -= 1;
+    state[player] += 1;
+    save();
+    render();
+    checkAll13(player);
+  }
+
+  function transfer(player) {
+    if (state.center !== 0 || state[player] <= 0) return;
+
+    var other = player === 'nessi' ? 'marc' : 'nessi';
+    state[player] -= 1;
+    state[other] += 1;
+
+    save();
+    render();
+    checkAll13(other);
+  }
+
+  function checkAll13(player) {
+    if (state[player] !== TOTAL) return;
+
+    var loser = player;
+    var loserName = playerName(loser);
+
+    if (state.phase === 1) {
+      state.firstLoser = loser;
+      state.nessiWins += loser === 'marc' ? 1 : 0;
+      state.marcWins += loser === 'nessi' ? 1 : 0;
+      save();
+
+      window.setTimeout(function () {
+        window.alert(
+          loserName + ' hat alle 13 Deckel und verliert die 1. Hälfte.\n' +
+          'Jetzt beginnt die 2. Hälfte.'
+        );
+        state.phase = 2;
+        resetDeckel();
+        save();
+        render();
+      }, 80);
+
+    } else if (state.phase === 2) {
+      state.secondLoser = loser;
+      state.nessiWins += loser === 'marc' ? 1 : 0;
+      state.marcWins += loser === 'nessi' ? 1 : 0;
+      save();
+
+      window.setTimeout(function () {
+        if (state.firstLoser === state.secondLoser) {
+          window.alert(
+            loserName +
+            ' hat beide Hälften verloren. Das Spiel ist beendet.'
+          );
+          state.phase = 1;
+          resetDeckel();
+        } else {
+          var a = playerName(state.firstLoser);
+          var b = playerName(state.secondLoser);
+          window.alert(
+            'Die Hälften sind verteilt.\n\n' +
+            a + ' und ' + b + ' spielen jetzt das Finale.'
+          );
+          state.phase = 3;
+          resetDeckel();
+        }
+        save();
+        render();
+      }, 80);
+
+    } else {
+      window.setTimeout(function () {
+        window.alert(
+          loserName + ' hat das Finale verloren.\n' +
+          'Das Spiel ist beendet.'
+        );
+        state.phase = 1;
+        state.firstLoser = null;
+        state.secondLoser = null;
+        resetDeckel();
+        save();
+        render();
+      }, 80);
+    }
+  }
+
+  function newGame() {
+    state.phase = 1;
+    state.firstLoser = null;
+    state.secondLoser = null;
+    resetDeckel();
+    save();
+    render();
+  }
+
+  function resetPoints() {
+    state.nessiWins = 0;
+    state.marcWins = 0;
+    save();
+    render();
+  }
+
+  // Optional keyboard support; touch/mouse continues to use ordinary click.
+  function bind(id, fn) {
+    var el = $(id);
+    if (el) el.addEventListener('click', fn, false);
+  }
+
+  bind('toNessi', function () { giveFromCenter('nessi'); });
+  bind('toMarc', function () { giveFromCenter('marc'); });
+  bind('nPlus', function () { giveFromCenter('nessi'); });
+  bind('mPlus', function () { giveFromCenter('marc'); });
+  bind('nMinus', function () { transfer('nessi'); });
+  bind('mMinus', function () { transfer('marc'); });
+  bind('newRound', newGame);
+  bind('allMiddle', newGame);
+  bind('resetPoints', resetPoints);
+
+  load();
+  render();
+})();
+</script>
+</body></html>
